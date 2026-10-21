@@ -192,8 +192,8 @@ The backend is built on **Node.js** and **Express.js**, adhering to RESTful API 
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/smart-attendance-system.git
-cd smart-attendance-system
+git clone https://github.com/premendupingla-maker/QR-Code-Based-Smart-Attendance-System.git
+cd QR-Code-Based-Smart-Attendance-System
 ```
 
 ### Step 2: Install Dependencies
@@ -273,8 +273,8 @@ git commit -m "feat: complete Smart Attendance System with updated Student porta
 # Rename branch to main
 git branch -M main
 
-# Link your GitHub remote (replace with your actual GitHub repository URL)
-git remote add origin https://github.com/<your-github-username>/smart-attendance-system.git
+# Link your GitHub remote
+git remote add origin https://github.com/premendupingla-maker/QR-Code-Based-Smart-Attendance-System.git
 
 # Push your code to GitHub
 git push -u origin main
