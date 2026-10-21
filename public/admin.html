@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard — Smart Attendance</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none; color:#fff;"><span class="mark"></span> Smart Attendance</a>
+    <nav>
+      <span class="userchip">👤 <span id="whoami">Admin</span></span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="section-title">Admin Panel</div>
+    <h2 style="margin-top:0;">Manage the system</h2>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="students">Students</div>
+      <div class="tab" data-tab="teachers">Teachers</div>
+      <div class="tab" data-tab="subjects">Subjects</div>
+      <div class="tab" data-tab="attendance">Attendance</div>
+    </div>
+
+    <div id="msg" class="msg hidden"></div>
+
+    <!-- ============ STUDENTS ============ -->
+    <section id="tab-students">
+      <div class="grid-2">
+        <div class="card">
+          <h3 id="studentFormTitle">Add Student</h3>
+          <form id="studentForm">
+            <input type="hidden" id="s_id" />
+            <div class="grid-2">
+              <div class="field"><label>Full Name</label><input id="s_name" required /></div>
+              <div class="field"><label>Roll Number</label><input id="s_roll" required placeholder="ST101" /></div>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>Email</label><input type="email" id="s_email" required /></div>
+              <div class="field"><label>Password <span class="muted" id="s_pwHint"></span></label><input type="password" id="s_password" placeholder="Set login password" /></div>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>Branch</label><input id="s_branch" required placeholder="Computer Science" /></div>
+              <div class="field"><label>Semester</label><input id="s_semester" required placeholder="5" /></div>
+            </div>
+            <div class="field"><label>College Name</label><input id="s_college" placeholder="ABC College of Engineering" /></div>
+            <div class="field"><label>Photo</label><input type="file" id="s_photo" accept="image/*" /></div>
+            <div class="row-actions">
+              <button class="btn amber" type="submit">Save Student</button>
+              <button class="btn outline" type="button" id="s_cancel" style="display:none;">Cancel Edit</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Regenerate QR Card</h3>
+          <p class="muted">Pick a student from the table to preview / regenerate their QR ID card.</p>
+          <div id="qrPreview" class="muted">No student selected.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex-between"><h3 style="margin:0;">All Students</h3><span class="muted" id="studentCount"></span></div>
+        <table id="studentTable">
+          <thead><tr><th>Roll</th><th>Name</th><th>Branch</th><th>Sem</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ TEACHERS ============ -->
+    <section id="tab-teachers" style="display:none;">
+      <div class="card">
+        <h3 id="teacherFormTitle">Add Teacher</h3>
+        <form id="teacherForm">
+          <input type="hidden" id="t_id" />
+          <div class="grid-2">
+            <div class="field"><label>Full Name</label><input id="t_name" required /></div>
+            <div class="field"><label>Email</label><input type="email" id="t_email" required /></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>Password <span class="muted" id="t_pwHint"></span></label><input type="password" id="t_password" placeholder="Set login password" /></div>
+            <div class="field"><label>Subjects (comma separated)</label><input id="t_subjects" placeholder="Data Structures, DBMS" /></div>
+          </div>
+          <div class="row-actions">
+            <button class="btn amber" type="submit">Save Teacher</button>
+            <button class="btn outline" type="button" id="t_cancel" style="display:none;">Cancel Edit</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>All Teachers</h3>
+        <table id="teacherTable">
+          <thead><tr><th>Name</th><th>Email</th><th>Subjects</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ SUBJECTS ============ -->
+    <section id="tab-subjects" style="display:none;">
+      <div class="card">
+        <h3>Add Subject</h3>
+        <form id="subjectForm">
+          <div class="grid-3">
+            <div class="field"><label>Subject Name</label><input id="sub_name" required /></div>
+            <div class="field"><label>Branch</label><input id="sub_branch" placeholder="Computer Science" /></div>
+            <div class="field"><label>Semester</label><input id="sub_sem" placeholder="5" /></div>
+          </div>
+          <button class="btn amber" type="submit">Add Subject</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>All Subjects</h3>
+        <table id="subjectTable">
+          <thead><tr><th>Subject</th><th>Branch</th><th>Semester</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ ATTENDANCE ============ -->
+    <section id="tab-attendance" style="display:none;">
+      <div class="card">
+        <div class="flex-between">
+          <h3 style="margin:0;">Filters</h3>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Subject</label><input id="a_subject" placeholder="e.g. DBMS" /></div>
+          <div class="field"><label>Date</label><input type="date" id="a_date" /></div>
+          <div class="field"><label>Branch</label><input id="a_branch" placeholder="e.g. Computer Science" /></div>
+        </div>
+        <div class="row-actions">
+          <button class="btn" id="a_filter">Apply Filters</button>
+          <button class="btn outline" id="a_clear">Clear</button>
+          <button class="btn danger" id="a_reset">⨯ Reset Attendance (filtered)</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>All Attendance Records</h3>
+        <table id="attendanceTable">
+          <thead><tr><th>Date</th><th>Time</th><th>Roll</th><th>Name</th><th>Branch</th><th>Subject</th><th>Teacher</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  requireRole("admin");
+  document.getElementById("whoami").textContent = getName() || "Admin";
+
+  const msg = document.getElementById("msg");
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    ["students","teachers","subjects","attendance"].forEach(name => {
+      document.getElementById("tab-" + name).style.display = (name === t.dataset.tab) ? "block" : "none";
+    });
+    if (t.dataset.tab === "teachers") loadTeachers();
+    if (t.dataset.tab === "subjects") loadSubjects();
+    if (t.dataset.tab === "attendance") loadAttendance();
+  }));
+
+  /* ===================== STUDENTS ===================== */
+  const studentForm = document.getElementById("studentForm");
+  const s_cancel = document.getElementById("s_cancel");
+
+  async function loadStudents() {
+    const students = await api("/admin/students");
+    document.getElementById("studentCount").textContent = students.length + " total";
+    document.querySelector("#studentTable tbody").innerHTML = students.map(s => `
+      <tr>
+        <td class="mono">${s.roll}</td><td>${s.name}</td><td>${s.branch}</td><td>${s.semester}</td><td>${s.email}</td>
+        <td class="row-actions">
+          <button class="btn outline small" onclick='editStudent(${JSON.stringify(s)})'>Edit</button>
+          <button class="btn outline small" onclick="previewQr('${s._id}')">QR</button>
+          <button class="btn danger small" onclick="deleteStudent('${s._id}','${s.name}')">Delete</button>
+        </td>
+      </tr>
+    `).join("") || `<tr><td colspan="6" class="muted">No students yet</td></tr>`;
+  }
+
+  function editStudent(s) {
+    document.getElementById("studentFormTitle").textContent = "Edit Student — " + s.name;
+    document.getElementById("s_id").value = s._id;
+    document.getElementById("s_name").value = s.name;
+    document.getElementById("s_roll").value = s.roll;
+    document.getElementById("s_email").value = s.email;
+    document.getElementById("s_branch").value = s.branch;
+    document.getElementById("s_semester").value = s.semester;
+    document.getElementById("s_college").value = s.college;
+    document.getElementById("s_password").value = "";
+    document.getElementById("s_pwHint").textContent = "(leave blank to keep unchanged)";
+    s_cancel.style.display = "inline-block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  s_cancel.addEventListener("click", () => resetStudentForm());
+  function resetStudentForm() {
+    studentForm.reset();
+    document.getElementById("s_id").value = "";
+    document.getElementById("studentFormTitle").textContent = "Add Student";
+    document.getElementById("s_pwHint").textContent = "";
+    s_cancel.style.display = "none";
+  }
+
+  studentForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("s_id").value;
+    const fd = new FormData();
+    fd.append("name", document.getElementById("s_name").value);
+    fd.append("roll", document.getElementById("s_roll").value);
+    fd.append("email", document.getElementById("s_email").value);
+    const pw = document.getElementById("s_password").value;
+    if (pw) fd.append("password", pw);
+    fd.append("branch", document.getElementById("s_branch").value);
+    fd.append("semester", document.getElementById("s_semester").value);
+    fd.append("college", document.getElementById("s_college").value);
+    const photoFile = document.getElementById("s_photo").files[0];
+    if (photoFile) fd.append("photo", photoFile);
+
+    try {
+      if (id) {
+        await api("/admin/students/" + id, { method: "PUT", body: fd, isForm: true });
+        showMsg(msg, "Student updated", "good");
+      } else {
+        if (!pw) { showMsg(msg, "Password is required for a new student", "bad"); return; }
+        await api("/admin/students", { method: "POST", body: fd, isForm: true });
+        showMsg(msg, "Student added", "good");
+      }
+      resetStudentForm();
+      loadStudents();
+    } catch (err) {
+      showMsg(msg, err.message, "bad");
+    }
+  });
+
+  async function deleteStudent(id, name) {
+    if (!confirm(`Delete student "${name}"? This also removes their attendance records.`)) return;
+    try {
+      await api("/admin/students/" + id, { method: "DELETE" });
+      showMsg(msg, "Student deleted", "good");
+      loadStudents();
+    } catch (err) { showMsg(msg, err.message, "bad"); }
+  }
+
+  async function previewQr(id) {
+    const s = await api(`/admin/students/${id}/qrcard`);
+    document.getElementById("qrPreview").innerHTML = `
+      <div style="text-align:center;">
+        <img src="${s.qrCode}" style="width:150px; height:150px; border:1px solid var(--line); border-radius:8px; padding:6px;" />
+        <div style="margin-top:8px; font-weight:600;">${s.name}</div>
+        <div class="mono muted">${s.roll}</div>
+      </div>`;
+  }
+
+  /* ===================== TEACHERS ===================== */
+  const teacherForm = document.getElementById("teacherForm");
+  const t_cancel = document.getElementById("t_cancel");
+
+  async function loadTeachers() {
+    const teachers = await api("/admin/teachers");
+    document.querySelector("#teacherTable tbody").innerHTML = teachers.map(t => `
+      <tr>
+        <td>${t.name}</td><td>${t.email}</td><td>${(t.subjects || []).join(", ") || "—"}</td>
+        <td class="row-actions">
+          <button class="btn outline small" onclick='editTeacher(${JSON.stringify(t)})'>Edit</button>
+          <button class="btn danger small" onclick="deleteTeacher('${t._id}','${t.name}')">Delete</button>
+        </td>
+      </tr>
+    `).join("") || `<tr><td colspan="4" class="muted">No teachers yet</td></tr>`;
+  }
+
+  function editTeacher(t) {
+    document.getElementById("teacherFormTitle").textContent = "Edit Teacher — " + t.name;
+    document.getElementById("t_id").value = t._id;
+    document.getElementById("t_name").value = t.name;
+    document.getElementById("t_email").value = t.email;
+    document.getElementById("t_subjects").value = (t.subjects || []).join(", ");
+    document.getElementById("t_password").value = "";
+    document.getElementById("t_pwHint").textContent = "(leave blank to keep unchanged)";
+    t_cancel.style.display = "inline-block";
+  }
+  t_cancel.addEventListener("click", resetTeacherForm);
+  function resetTeacherForm() {
+    teacherForm.reset();
+    document.getElementById("t_id").value = "";
+    document.getElementById("teacherFormTitle").textContent = "Add Teacher";
+    document.getElementById("t_pwHint").textContent = "";
+    t_cancel.style.display = "none";
+  }
+
+  teacherForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("t_id").value;
+    const body = {
+      name: document.getElementById("t_name").value,
+      email: document.getElementById("t_email").value,
+      subjects: document.getElementById("t_subjects").value,
+    };
+    const pw = document.getElementById("t_password").value;
+    if (pw) body.password = pw;
+
+    try {
+      if (id) {
+        await api("/admin/teachers/" + id, { method: "PUT", body });
+        showMsg(msg, "Teacher updated", "good");
+      } else {
+        if (!pw) { showMsg(msg, "Password is required for a new teacher", "bad"); return; }
+        await api("/admin/teachers", { method: "POST", body });
+        showMsg(msg, "Teacher added", "good");
+      }
+      resetTeacherForm();
+      loadTeachers();
+    } catch (err) { showMsg(msg, err.message, "bad"); }
+  });
+
+  async function deleteTeacher(id, name) {
+    if (!confirm(`Delete teacher "${name}"?`)) return;
+    try {
+      await api("/admin/teachers/" + id, { method: "DELETE" });
+      showMsg(msg, "Teacher deleted", "good");
+      loadTeachers();
+    } catch (err) { showMsg(msg, err.message, "bad"); }
+  }
+
+  /* ===================== SUBJECTS ===================== */
+  const subjectForm = document.getElementById("subjectForm");
+
+  async function loadSubjects() {
+    const subjects = await api("/admin/subjects");
+    document.querySelector("#subjectTable tbody").innerHTML = subjects.map(s => `
+      <tr><td>${s.name}</td><td>${s.branch || "—"}</td><td>${s.semester || "—"}</td>
+      <td><button class="btn danger small" onclick="deleteSubject('${s._id}','${s.name}')">Delete</button></td></tr>
+    `).join("") || `<tr><td colspan="4" class="muted">No subjects yet</td></tr>`;
+  }
+
+  subjectForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      await api("/admin/subjects", {
+        method: "POST",
+        body: {
+          name: document.getElementById("sub_name").value,
+          branch: document.getElementById("sub_branch").value,
+          semester: document.getElementById("sub_sem").value,
+        },
+      });
+      subjectForm.reset();
+      showMsg(msg, "Subject added", "good");
+      loadSubjects();
+    } catch (err) { showMsg(msg, err.message, "bad"); }
+  });
+
+  async function deleteSubject(id, name) {
+    if (!confirm(`Delete subject "${name}"?`)) return;
+    try {
+      await api("/admin/subjects/" + id, { method: "DELETE" });
+      showMsg(msg, "Subject deleted", "good");
+      loadSubjects();
+    } catch (err) { showMsg(msg, err.message, "bad"); }
+  }
+
+  /* ===================== ATTENDANCE ===================== */
+  async function loadAttendance() {
+    const subject = document.getElementById("a_subject").value.trim();
+    const date = document.getElementById("a_date").value;
+    const branch = document.getElementById("a_branch").value.trim();
+    const params = new URLSearchParams();
+    if (subject) params.set("subject", subject);
+    if (date) params.set("date", date);
+    if (branch) params.set("branch", branch);
+
+    const records = await api("/admin/attendance?" + params.toString());
+    document.querySelector("#attendanceTable tbody").innerHTML = records.map(r => `
+      <tr>
+        <td class="mono">${r.date}</td><td class="mono">${r.time}</td>
+        <td class="mono">${r.studentId?.roll || ""}</td><td>${r.studentId?.name || ""}</td>
+        <td>${r.studentId?.branch || ""}</td><td>${r.subject}</td><td>${r.teacherId?.name || ""}</td>
+        <td><span class="badge good">${r.status}</span></td>
+      </tr>
+    `).join("") || `<tr><td colspan="8" class="muted">No records match this filter</td></tr>`;
+  }
+
+  document.getElementById("a_filter").addEventListener("click", loadAttendance);
+  document.getElementById("a_clear").addEventListener("click", () => {
+    document.getElementById("a_subject").value = "";
+    document.getElementById("a_date").value = "";
+    document.getElementById("a_branch").value = "";
+    loadAttendance();
+  });
+  document.getElementById("a_reset").addEventListener("click", async () => {
+    const subject = document.getElementById("a_subject").value.trim();
+    const date = document.getElementById("a_date").value;
+    const scope = [subject && `subject="${subject}"`, date && `date=${date}`].filter(Boolean).join(", ") || "ALL records";
+    if (!confirm(`This will permanently delete attendance for: ${scope}. Continue?`)) return;
+    const params = new URLSearchParams();
+    if (subject) params.set("subject", subject);
+    if (date) params.set("date", date);
+    try {
+      const result = await api("/admin/attendance/reset?" + params.toString(), { method: "DELETE" });
+      showMsg(msg, `Reset complete — ${result.deletedCount} record(s) deleted`, "good");
+      loadAttendance();
+    } catch (err) { showMsg(msg, err.message, "bad"); }
+  });
+
+  loadStudents();
+</script>
+</body>
+</html>

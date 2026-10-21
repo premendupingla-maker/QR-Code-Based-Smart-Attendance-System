@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login — Smart Attendance</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none; color:#fff;"><span class="mark"></span> Smart Attendance</a>
+  </header>
+
+  <main class="container" style="max-width:440px;">
+    <div class="card" style="margin-top:40px;">
+      <div class="tabs" id="tabs">
+        <div class="tab" data-role="student">Student</div>
+        <div class="tab" data-role="teacher">Teacher</div>
+        <div class="tab" data-role="admin">Admin</div>
+      </div>
+
+      <div id="msg" class="msg hidden"></div>
+
+      <!-- Student / Teacher form (email + password) -->
+      <form id="emailForm">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="email" required placeholder="you@college.edu" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="password" required placeholder="••••••••" />
+        </div>
+        <button class="btn amber" style="width:100%;" type="submit">Login</button>
+      </form>
+
+      <!-- Admin form (username + password) -->
+      <form id="adminForm" style="display:none;">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="username" placeholder="admin" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="adminPassword" placeholder="••••••••" />
+        </div>
+        <button class="btn amber" style="width:100%;" type="submit">Login as Admin</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  let currentRole = new URLSearchParams(location.search).get("role") || "student";
+
+  const tabs = document.querySelectorAll(".tab");
+  const emailForm = document.getElementById("emailForm");
+  const adminForm = document.getElementById("adminForm");
+  const msg = document.getElementById("msg");
+
+  function setActive(role) {
+    currentRole = role;
+    tabs.forEach(t => t.classList.toggle("active", t.dataset.role === role));
+    emailForm.style.display = role === "admin" ? "none" : "block";
+    adminForm.style.display = role === "admin" ? "block" : "none";
+    hideMsg(msg);
+  }
+  tabs.forEach(t => t.addEventListener("click", () => setActive(t.dataset.role)));
+  setActive(currentRole);
+
+  emailForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    try {
+      const data = await api(`/auth/${currentRole}/login`, { method: "POST", body: { email, password } });
+      saveSession(data);
+      window.location.href = currentRole + ".html";
+    } catch (err) {
+      showMsg(msg, err.message, "bad");
+    }
+  });
+
+  adminForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("adminPassword").value;
+    try {
+      const data = await api(`/auth/admin/login`, { method: "POST", body: { username, password } });
+      saveSession(data);
+      window.location.href = "admin.html";
+    } catch (err) {
+      showMsg(msg, err.message, "bad");
+    }
+  });
+</script>
+</body>
+</html>

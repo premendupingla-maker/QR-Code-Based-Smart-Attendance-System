@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 580" width="100%" height="100%">
+  <defs>
+    <linearGradient id="arcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a121e" />
+      <stop offset="50%" stop-color="#12213b" />
+      <stop offset="100%" stop-color="#192b4a" />
+    </linearGradient>
+    <linearGradient id="frontG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e345b" />
+      <stop offset="100%" stop-color="#14233c" />
+    </linearGradient>
+    <linearGradient id="backG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a1f42" />
+      <stop offset="100%" stop-color="#19132a" />
+    </linearGradient>
+    <linearGradient id="dbG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#143628" />
+      <stop offset="100%" stop-color="#0c2017" />
+    </linearGradient>
+    <filter id="arcShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <style>
+    .arc-ui { font-family: 'Inter', -apple-system, sans-serif; }
+    .arc-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+
+  <rect width="1100" height="580" rx="16" fill="url(#arcBg)" />
+
+  <!-- Top Title -->
+  <g transform="translate(50, 40)">
+    <rect width="180" height="26" rx="13" fill="rgba(242,169,59,0.15)" stroke="rgba(242,169,59,0.4)" />
+    <text x="14" y="17" class="arc-mono" fill="#ffd56b" font-size="11" font-weight="700">FULL-STACK ARCHITECTURE</text>
+    <text x="0" y="58" class="arc-ui" font-weight="800" fill="#ffffff" font-size="28">Frontend · Backend · Database Ecosystem</text>
+  </g>
+
+  <!-- Flow Arrows connecting layers -->
+  <g stroke="#f2a93b" stroke-width="2" stroke-dasharray="6,6" opacity="0.6">
+    <!-- Frontend to Backend -->
+    <line x1="360" y1="280" x2="400" y2="280" />
+    <polygon points="400,280 392,275 392,285" fill="#f2a93b" />
+
+    <!-- Backend to DB -->
+    <line x1="720" y1="280" x2="760" y2="280" />
+    <polygon points="760,280 752,275 752,285" fill="#f2a93b" />
+  </g>
+
+  <!-- 3 Main Pillars -->
+  <g transform="translate(50, 130)">
+
+    <!-- PILLAR 1: FRONTEND LAYER -->
+    <g filter="url(#arcShadow)">
+      <rect width="310" height="390" rx="14" fill="url(#frontG)" stroke="#3b82f6" stroke-width="1.5" />
+
+      <!-- Layer Badge -->
+      <g transform="translate(20, 20)">
+        <rect width="120" height="24" rx="12" fill="#1d4ed8" />
+        <text x="12" y="16" class="arc-mono" fill="#ffffff" font-size="11" font-weight="700">🎨 FRONTEND</text>
+        <text x="0" y="44" class="arc-ui" font-weight="800" fill="#ffffff" font-size="18">Client Application</text>
+        <text x="0" y="62" class="arc-ui" fill="#93c5fd" font-size="12">HTML5 · CSS3 Custom Tokens · Vanilla JS</text>
+      </g>
+
+      <line x1="20" y1="95" x2="290" y2="95" stroke="rgba(255,255,255,0.1)" />
+
+      <!-- Components List -->
+      <g transform="translate(20, 110)">
+        <!-- Student -->
+        <rect width="270" height="52" rx="8" fill="#142442" />
+        <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Student Portal</text>
+        <text x="14" y="38" class="arc-ui" fill="#93a8c7" font-size="11">Metrics · QR Badge · 75% Tracker</text>
+
+        <!-- Teacher -->
+        <g transform="translate(0, 60)">
+          <rect width="270" height="52" rx="8" fill="#142442" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Teacher Scanner</text>
+          <text x="14" y="38" class="arc-ui" fill="#93a8c7" font-size="11">html5-qrcode · Viewfinder · CSV</text>
+        </g>
+
+        <!-- Admin -->
+        <g transform="translate(0, 120)">
+          <rect width="270" height="52" rx="8" fill="#142442" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Admin Control Center</text>
+          <text x="14" y="38" class="arc-ui" fill="#93a8c7" font-size="11">Full CRUD · Master Filter · Reset</text>
+        </g>
+
+        <!-- Shared -->
+        <g transform="translate(0, 180)">
+          <rect width="270" height="52" rx="8" fill="#142442" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Shared Utilities &amp; Canvas</text>
+          <text x="14" y="38" class="arc-ui" fill="#93a8c7" font-size="11">html2canvas · JWT Storage · Fetch API</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- PILLAR 2: BACKEND LAYER -->
+    <g transform="translate(350, 0)" filter="url(#arcShadow)">
+      <rect width="320" height="390" rx="14" fill="url(#backG)" stroke="#a855f7" stroke-width="1.5" />
+
+      <!-- Layer Badge -->
+      <g transform="translate(20, 20)">
+        <rect width="115" height="24" rx="12" fill="#7e22ce" />
+        <text x="12" y="16" class="arc-mono" fill="#ffffff" font-size="11" font-weight="700">⚙️ BACKEND</text>
+        <text x="0" y="44" class="arc-ui" font-weight="800" fill="#ffffff" font-size="18">Node / Express REST</text>
+        <text x="0" y="62" class="arc-ui" fill="#d8b4fe" font-size="12">Express 4 · JWT Auth · QR Generator</text>
+      </g>
+
+      <line x1="20" y1="95" x2="300" y2="95" stroke="rgba(255,255,255,0.1)" />
+
+      <!-- Backend Modules -->
+      <g transform="translate(20, 110)">
+        <rect width="280" height="52" rx="8" fill="#201538" />
+        <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Auth Guard &amp; Role Gatekeeper</text>
+        <text x="14" y="38" class="arc-mono" fill="#d8b4fe" font-size="11">middleware.js · JWT Bearer Token</text>
+
+        <g transform="translate(0, 60)">
+          <rect width="280" height="52" rx="8" fill="#201538" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Real-time Anti-Proxy Engine</text>
+          <text x="14" y="38" class="arc-mono" fill="#d8b4fe" font-size="11">POST /api/teacher/scan (409 Check)</text>
+        </g>
+
+        <g transform="translate(0, 120)">
+          <rect width="280" height="52" rx="8" fill="#201538" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Automated Base64 QR Engine</text>
+          <text x="14" y="38" class="arc-mono" fill="#d8b4fe" font-size="11">qrcode npm · {"id": roll} JSON payload</text>
+        </g>
+
+        <g transform="translate(0, 180)">
+          <rect width="280" height="52" rx="8" fill="#201538" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Multipart Asset Processor</text>
+          <text x="14" y="38" class="arc-mono" fill="#d8b4fe" font-size="11">multer · Student Photo Storage</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- PILLAR 3: DATABASE LAYER -->
+    <g transform="translate(710, 0)" filter="url(#arcShadow)">
+      <rect width="290" height="390" rx="14" fill="url(#dbG)" stroke="#22c55e" stroke-width="1.5" />
+
+      <!-- Layer Badge -->
+      <g transform="translate(20, 20)">
+        <rect width="115" height="24" rx="12" fill="#15803d" />
+        <text x="12" y="16" class="arc-mono" fill="#ffffff" font-size="11" font-weight="700">💾 DATABASE</text>
+        <text x="0" y="44" class="arc-ui" font-weight="800" fill="#ffffff" font-size="18">MongoDB Master</text>
+        <text x="0" y="62" class="arc-ui" fill="#86efac" font-size="12">Mongoose 8 ODM · Persistent Store</text>
+      </g>
+
+      <line x1="20" y1="95" x2="270" y2="95" stroke="rgba(255,255,255,0.1)" />
+
+      <!-- Models List -->
+      <g transform="translate(20, 110)">
+        <rect width="250" height="52" rx="8" fill="#0f261c" />
+        <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Student Collection</text>
+        <text x="14" y="38" class="arc-mono" fill="#86efac" font-size="11">roll (unique), email, qrCode, photo</text>
+
+        <g transform="translate(0, 60)">
+          <rect width="250" height="52" rx="8" fill="#0f261c" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Attendance Collection</text>
+          <text x="14" y="38" class="arc-mono" fill="#ffd56b" font-size="10.5">Index: { studentId, subject, date }</text>
+        </g>
+
+        <g transform="translate(0, 120)">
+          <rect width="250" height="52" rx="8" fill="#0f261c" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Teacher &amp; Subject Catalogs</text>
+          <text x="14" y="38" class="arc-mono" fill="#86efac" font-size="11">name, email, subject list</text>
+        </g>
+
+        <g transform="translate(0, 180)">
+          <rect width="250" height="52" rx="8" fill="#0f261c" />
+          <text x="14" y="22" class="arc-ui" font-weight="700" fill="#ffffff" font-size="13">Admin Security Document</text>
+          <text x="14" y="38" class="arc-mono" fill="#86efac" font-size="11">username, bcrypt hashed salt</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

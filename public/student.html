@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Portal — Smart Attendance System</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  /* Extra bespoke student portal enhancements */
+  .student-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 2px;
+    overflow-x: auto;
+  }
+  .student-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -4px;
+  }
+  .student-tab-btn:hover {
+    color: var(--ink);
+    background: rgba(18, 33, 59, 0.04);
+  }
+  .student-tab-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--amber);
+    background: var(--paper-raised);
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.03);
+  }
+  .tab-pane {
+    display: none;
+    animation: fadeIn 0.25s ease;
+  }
+  .tab-pane.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .advice-card {
+    border-left: 4px solid var(--good);
+    background: #f4fbf7;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .advice-card.warning {
+    border-left-color: var(--amber-dark);
+    background: #fffcf4;
+  }
+  .advice-card.danger {
+    border-left-color: var(--bad);
+    background: #fdf5f5;
+  }
+  .id-tips-box {
+    background: var(--paper-raised);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    max-width: 350px;
+    margin: 0 auto;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .id-tips-box ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none; color:#fff;">
+      <span class="mark"></span> Smart Attendance
+    </a>
+    <nav>
+      <span class="userchip" id="timeChip" style="font-family:var(--font-mono); font-size:12px; opacity:0.85;">🕒 --:--:--</span>
+      <span class="userchip">👤 <span id="whoami">Student</span></span>
+      <button class="btn-logout" onclick="logout()" title="Sign out of student portal">Logout</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Student Hero Greeting Banner -->
+    <div class="student-hero">
+      <div class="hero-content">
+        <div class="hero-profile">
+          <div class="hero-avatar-wrap">
+            <img class="hero-avatar" id="heroPhoto" src="https://api.dicebear.com/7.x/initials/svg?seed=Student" alt="Student Avatar" />
+            <span class="hero-avatar-status" title="Active Student"></span>
+          </div>
+          <div class="hero-details">
+            <div style="font-size:13px; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:1px; font-family:var(--font-mono);" id="greetingTime">Welcome back,</div>
+            <h2><span id="heroName">Student</span></h2>
+            <div class="hero-meta-row">
+              <span class="hero-chip accent" id="heroRoll">Roll: —</span>
+              <span class="hero-chip" id="heroBranch">Branch: —</span>
+              <span class="hero-chip" id="heroSem">Sem: —</span>
+              <span class="hero-chip" id="heroCollege">College: —</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-status-pill">
+          <div class="attendance-badge-pill safe" id="heroHealthBadge">
+            <span id="heroHealthDot">●</span> <span id="heroHealthText">Checking status…</span>
+          </div>
+          <span style="font-size:11.5px; opacity:0.8; margin-top:4px;">Mandatory Target: 75.0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Key Analytics Metrics Row -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-icon-wrap primary">📊</div>
+        <div class="metric-info">
+          <div class="metric-value" id="m_percent">0%</div>
+          <div class="metric-title">Overall Score</div>
+          <div class="metric-sub" id="m_percent_sub">Total weighted score</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-wrap good">✅</div>
+        <div class="metric-info">
+          <div class="metric-value" id="m_present">0</div>
+          <div class="metric-title">Classes Attended</div>
+          <div class="metric-sub">Verified present</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-wrap amber">🏫</div>
+        <div class="metric-info">
+          <div class="metric-value" id="m_total">0</div>
+          <div class="metric-title">Total Lectures</div>
+          <div class="metric-sub">Conducted so far</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-wrap purple">🎯</div>
+        <div class="metric-info">
+          <div class="metric-value" id="m_eligibility" style="font-size:20px;">—</div>
+          <div class="metric-title">Exam Eligibility</div>
+          <div class="metric-sub" id="m_eligibility_sub">75% attendance rule</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="student-tabs">
+      <button class="student-tab-btn active" data-target="tab-overview">📊 Dashboard &amp; Subjects</button>
+      <button class="student-tab-btn" data-target="tab-idcard">🪪 Digital Smart ID Card</button>
+      <button class="student-tab-btn" data-target="tab-history">📜 Attendance Log (<span id="tabCount">0</span>)</button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW & SUBJECTS -->
+    <div class="tab-pane active" id="tab-overview">
+      <div class="grid-2">
+        <!-- Left: Subject Breakdown & Progress -->
+        <div>
+          <div class="card">
+            <div class="flex-between">
+              <h3 style="margin:0;">Subject-wise Attendance</h3>
+              <span class="muted" id="subjectCountText">Loading subjects…</span>
+            </div>
+            <p class="muted" style="margin:6px 0 16px; font-size:13px;">Live breakdown of your attendance per registered subject.</p>
+
+            <div id="subjectCardsList">
+              <div class="muted" style="padding:16px; text-align:center;">Loading subjects…</div>
+            </div>
+
+            <!-- Attendance Health Advice Banner -->
+            <div id="attendanceAdvice" class="advice-card">
+              <span>💡</span>
+              <span id="adviceText">Calculating attendance recommendations…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Digital ID Card Preview & Profile Details -->
+        <div>
+          <div class="card">
+            <div class="flex-between">
+              <h3 style="margin:0;">Quick Digital ID</h3>
+              <button class="btn amber small" id="quickDownloadBtn">⬇ Download PNG</button>
+            </div>
+            <p class="muted" style="margin:6px 0 16px; font-size:13px;">Carry this QR code on your phone or print it for class roll call.</p>
+
+            <!-- Rendered ID Card (Shared) -->
+            <div class="id-card-container">
+              <div class="id-card" id="idCard">
+                <div class="id-card-header">
+                  <div>
+                    <div class="id-eyebrow">Smart Campus ID</div>
+                    <div class="id-college" id="idCollege">ABC College of Engineering</div>
+                  </div>
+                  <div class="id-card-chip" title="Smart Card NFC/RFID Emulation"></div>
+                </div>
+
+                <div class="id-body">
+                  <img class="id-photo" id="idPhoto" src="https://api.dicebear.com/7.x/initials/svg?seed=Student" alt="Student photo" />
+                  <div>
+                    <div class="id-name" id="idName">—</div>
+                    <div class="id-roll" id="idRoll">ROLL: —</div>
+                    <div class="id-meta">
+                      <div>Branch: <strong id="idBranch">—</strong></div>
+                      <div>Semester: <strong id="idSem">—</strong></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="id-qr">
+                  <div class="id-card-qr-box">
+                    <img id="idQr" src="" alt="Student Attendance QR Code" />
+                  </div>
+                  <div class="id-card-caption">Hold up to scanner camera</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Academic Profile Information Card -->
+          <div class="card">
+            <h3>Student Academic Profile</h3>
+            <table>
+              <tr><th>Full Name</th><td id="p_name">—</td></tr>
+              <tr><th>Roll Number</th><td class="mono" id="p_roll" style="color:var(--amber-dark); font-weight:700;">—</td></tr>
+              <tr><th>Registered Email</th><td id="p_email">—</td></tr>
+              <tr><th>Branch &amp; Dept</th><td id="p_branch">—</td></tr>
+              <tr><th>Current Semester</th><td id="p_sem">—</td></tr>
+              <tr><th>Institution</th><td id="p_college">—</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DIGITAL SMART ID CARD (DEDICATED FULL VIEW) -->
+    <div class="tab-pane" id="tab-idcard">
+      <div class="card" style="text-align:center; padding:32px 20px;">
+        <h2 style="margin:0 0 6px;">Your Official Student Attendance Card</h2>
+        <p class="muted" style="max-width:540px; margin:0 auto 24px;">
+          This card contains an encrypted quick-response identifier. Show this card to your professor's laptop camera at the beginning of each lecture.
+        </p>
+
+        <div style="display:flex; justify-content:center; margin-bottom:24px;">
+          <!-- Placeholder that mirrors ID card via JS -->
+          <div id="fullCardSlot"></div>
+        </div>
+
+        <div class="row-actions" style="justify-content:center; gap:12px;">
+          <button class="btn amber" id="fullDownloadBtn">⬇ Download High-Res PNG</button>
+          <button class="btn outline" id="printCardBtn" onclick="window.print()">🖨 Print ID Card</button>
+        </div>
+
+        <div class="id-tips-box" style="margin-top:28px;">
+          <strong>💡 Tips for smooth scanning:</strong>
+          <ul>
+            <li>Ensure adequate lighting when holding the card to the camera.</li>
+            <li>Hold the card steady about 15–30 cm from the camera lens.</li>
+            <li>You can also save the PNG to your smartphone screen.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ATTENDANCE HISTORY LOG -->
+    <div class="tab-pane" id="tab-history">
+      <div class="card">
+        <div class="flex-between" style="margin-bottom:14px;">
+          <h3 style="margin:0;">Attendance History Logs</h3>
+          <span class="muted" id="historyCounter">0 verified records</span>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="search-bar">
+          <input type="text" id="logSearchInput" placeholder="🔍 Search by subject, date (e.g. 2026-08-06), or time…" />
+          <button class="btn outline small" id="clearSearchBtn">Clear</button>
+        </div>
+
+        <!-- Logs Data Table -->
+        <div style="overflow-x:auto;">
+          <table id="historyTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time Recorded</th>
+                <th>Subject</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" class="muted" style="text-align:center; padding:20px;">Loading attendance records…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">
+    QR Code Based Smart Attendance System · Modern MERN-Lite Architecture · Designed for Academic Excellence
+  </footer>
+</div>
+
+<script src="script.js"></script>
+<script>
+  requireRole("student");
+
+  // Live Clock updater
+  function updateClock() {
+    const d = new Date();
+    document.getElementById("timeChip").textContent = "🕒 " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Dynamic Greeting
+  const curHour = new Date().getHours();
+  let timeGreeting = "Welcome back,";
+  if (curHour < 12) timeGreeting = "Good morning,";
+  else if (curHour < 17) timeGreeting = "Good afternoon,";
+  else timeGreeting = "Good evening,";
+  document.getElementById("greetingTime").textContent = timeGreeting;
+
+  // Tab switching logic
+  const tabs = document.querySelectorAll(".student-tab-btn");
+  const panes = document.querySelectorAll(".tab-pane");
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      panes.forEach(p => p.classList.remove("active"));
+      tab.classList.add("active");
+      const targetId = tab.dataset.target;
+      const targetPane = document.getElementById(targetId);
+      if (targetPane) targetPane.classList.add("active");
+
+      // If moving to ID card tab, ensure card is visible
+      if (targetId === "tab-idcard") {
+        const slot = document.getElementById("fullCardSlot");
+        const idCard = document.getElementById("idCard");
+        if (slot && idCard && slot.children.length === 0) {
+          slot.appendChild(idCard);
+        }
+      } else {
+        const container = document.querySelector(".id-card-container");
+        const idCard = document.getElementById("idCard");
+        if (container && idCard && !container.contains(idCard)) {
+          container.appendChild(idCard);
+        }
+      }
+    });
+  });
+
+  // Cached state for client search
+  let allHistory = [];
+
+  // Data fetching and UI population
+  (async () => {
+    // 1. Fetch Profile
+    try {
+      const p = await api("/student/profile");
+      document.getElementById("whoami").textContent = p.name;
+      document.getElementById("heroName").textContent = p.name;
+      document.getElementById("p_name").textContent = p.name;
+      document.getElementById("p_roll").textContent = p.roll;
+      document.getElementById("p_branch").textContent = p.branch;
+      document.getElementById("p_sem").textContent = "Semester " + p.semester;
+      document.getElementById("p_college").textContent = p.college || "Academic Institute";
+      document.getElementById("p_email").textContent = p.email;
+
+      document.getElementById("heroRoll").textContent = "Roll: " + p.roll;
+      document.getElementById("heroBranch").textContent = p.branch?.toUpperCase();
+      document.getElementById("heroSem").textContent = "Sem " + p.semester;
+      document.getElementById("heroCollege").textContent = p.college || "Campus";
+
+      if (p.photo) {
+        document.getElementById("heroPhoto").src = p.photo;
+      } else {
+        document.getElementById("heroPhoto").src = "https://api.dicebear.com/7.x/initials/svg?seed=" + encodeURIComponent(p.name);
+      }
+    } catch (err) {
+      console.error("Profile load error:", err);
+    }
+
+    // 2. Fetch QR Card Data
+    try {
+      const card = await api("/student/qrcard");
+      document.getElementById("idCollege").textContent = card.college || "Campus Institute";
+      document.getElementById("idName").textContent = card.name;
+      document.getElementById("idRoll").textContent = "ROLL: " + card.roll;
+      document.getElementById("idBranch").textContent = card.branch;
+      document.getElementById("idSem").textContent = card.semester;
+      if (card.qrCode) {
+        document.getElementById("idQr").src = card.qrCode;
+      }
+      if (card.photo) {
+        document.getElementById("idPhoto").src = card.photo;
+      } else {
+        document.getElementById("idPhoto").src = "https://api.dicebear.com/7.x/initials/svg?seed=" + encodeURIComponent(card.name);
+      }
+    } catch (err) {
+      console.error("QR Card load error:", err);
+    }
+
+    // 3. Fetch Attendance Stats & Logs
+    try {
+      const att = await api("/student/attendance");
+      allHistory = att.history || [];
+      const pct = parseFloat(att.overallPercentage) || 0;
+
+      // Update Key Metrics
+      document.getElementById("m_percent").textContent = pct + "%";
+      document.getElementById("m_present").textContent = att.totalPresent || 0;
+      document.getElementById("m_total").textContent = att.totalClasses || 0;
+      document.getElementById("tabCount").textContent = allHistory.length;
+      document.getElementById("historyCounter").textContent = allHistory.length + " verified records";
+
+      // Status Pill & Eligibility Logic
+      const healthBadge = document.getElementById("heroHealthBadge");
+      const healthText = document.getElementById("heroHealthText");
+      const eligibilityVal = document.getElementById("m_eligibility");
+      const eligibilitySub = document.getElementById("m_eligibility_sub");
+      const adviceBox = document.getElementById("attendanceAdvice");
+      const adviceText = document.getElementById("adviceText");
+
+      if (pct >= 75) {
+        healthBadge.className = "attendance-badge-pill safe";
+        healthText.textContent = `${pct}% · Exam Eligible`;
+        eligibilityVal.textContent = "Eligible ✅";
+        eligibilityVal.style.color = "var(--good)";
+
+        // Buffer calculation: How many consecutive classes can be skipped while remaining >= 75%?
+        // (P) / (T + S) >= 0.75  =>  P >= 0.75*(T+S)  =>  S <= (P / 0.75) - T
+        const safeBuffer = Math.max(0, Math.floor((att.totalPresent / 0.75) - att.totalClasses));
+        eligibilitySub.textContent = safeBuffer > 0 ? `${safeBuffer} classes safe buffer` : "On boundary";
+
+        adviceBox.className = "advice-card";
+        adviceText.innerHTML = `<strong>Status: Excellent!</strong> Your attendance is <strong>${pct}%</strong>, above the required 75.0% threshold. You are fully qualified for examinations.`;
+      } else if (pct >= 60) {
+        healthBadge.className = "attendance-badge-pill warning";
+        healthText.textContent = `${pct}% · Attendance Warning`;
+        eligibilityVal.textContent = "At Risk ⚠️";
+        eligibilityVal.style.color = "var(--amber-dark)";
+
+        // Needed calculation: How many consecutive classes to attend to reach 75%?
+        // (P + X) / (T + X) >= 0.75  =>  0.25*X >= 0.75*T - P  =>  X >= 3*T - 4*P
+        const needed = Math.max(1, Math.ceil(3 * att.totalClasses - 4 * att.totalPresent));
+        eligibilitySub.textContent = `Need ${needed} more classes`;
+
+        adviceBox.className = "advice-card warning";
+        adviceText.innerHTML = `<strong>Attention Required:</strong> Your attendance is at <strong>${pct}%</strong>. You must attend the next <strong>${needed}</strong> consecutive classes without absence to regain exam eligibility.`;
+      } else {
+        healthBadge.className = "attendance-badge-pill danger";
+        healthText.textContent = `${pct}% · Shortage Alert`;
+        eligibilityVal.textContent = "Critical ❌";
+        eligibilityVal.style.color = "var(--bad)";
+
+        const needed = Math.max(1, Math.ceil(3 * att.totalClasses - 4 * att.totalPresent));
+        eligibilitySub.textContent = `Shortage (${needed}+ needed)`;
+
+        adviceBox.className = "advice-card danger";
+        adviceText.innerHTML = `<strong>Critical Attendance Warning:</strong> Attendance is <strong>${pct}%</strong> (well below 75%). Please meet with your academic advisor or course coordinator immediately.`;
+      }
+
+      // Subject-wise Breakdown
+      const subCardsContainer = document.getElementById("subjectCardsList");
+      const bySubject = att.bySubject || [];
+      document.getElementById("subjectCountText").textContent = bySubject.length + " enrolled subjects";
+
+      if (bySubject.length === 0) {
+        subCardsContainer.innerHTML = `<div class="muted" style="padding:20px; text-align:center;">No attendance records have been registered for your subjects yet.</div>`;
+      } else {
+        subCardsContainer.innerHTML = bySubject.map(s => {
+          const sPct = parseFloat(s.percentage) || 0;
+          let colorClass = "good";
+          let badgeStatus = "Safe";
+          if (sPct < 60) {
+            colorClass = "danger";
+            badgeStatus = "Critical";
+          } else if (sPct < 75) {
+            colorClass = "warning";
+            badgeStatus = "At Risk";
+          }
+          return `
+            <div class="subject-card">
+              <div class="subject-header">
+                <span class="subject-title">📚 ${escapeHtml(s.subject)}</span>
+                <span class="badge ${colorClass === 'good' ? 'good' : (colorClass === 'warning' ? 'neutral' : 'bad')}">${sPct}% · ${badgeStatus}</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill ${colorClass}" style="width: ${Math.min(100, Math.max(6, sPct))}%;"></div>
+              </div>
+              <div class="subject-footer">
+                <span>Classes: <strong>${s.present}</strong> attended / <strong>${s.total}</strong> held</span>
+                <span class="mono">${sPct >= 75 ? '✔ On Target' : '⚠ Below 75%'}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Attendance History Table
+      renderHistoryTable(allHistory);
+
+    } catch (err) {
+      console.error("Attendance load error:", err);
+    }
+  })();
+
+  // Render History Table with search filter support
+  function renderHistoryTable(records) {
+    const tbody = document.querySelector("#historyTable tbody");
+    if (!records || records.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="muted" style="text-align:center; padding:24px;">No matching attendance records found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = records.map(h => {
+      return `
+        <tr>
+          <td class="mono" style="font-weight:600; color:var(--ink-soft);">${escapeHtml(h.date)}</td>
+          <td class="mono" style="color:var(--muted);">${escapeHtml(h.time)}</td>
+          <td><strong>${escapeHtml(h.subject)}</strong></td>
+          <td><span class="badge good">✔ ${escapeHtml(h.status || 'Present')}</span></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // Live filter for history
+  const searchInput = document.getElementById("logSearchInput");
+  searchInput.addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) {
+      renderHistoryTable(allHistory);
+      document.getElementById("historyCounter").textContent = allHistory.length + " verified records";
+      return;
+    }
+    const filtered = allHistory.filter(h => {
+      return (h.subject && h.subject.toLowerCase().includes(q)) ||
+             (h.date && h.date.toLowerCase().includes(q)) ||
+             (h.time && h.time.toLowerCase().includes(q));
+    });
+    renderHistoryTable(filtered);
+    document.getElementById("historyCounter").textContent = `Showing ${filtered.length} of ${allHistory.length} records`;
+  });
+
+  document.getElementById("clearSearchBtn").addEventListener("click", () => {
+    searchInput.value = "";
+    renderHistoryTable(allHistory);
+    document.getElementById("historyCounter").textContent = allHistory.length + " verified records";
+  });
+
+  // Download PNG helper function
+  async function downloadIdCard(btn) {
+    const cardEl = document.getElementById("idCard");
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "⏳ Generating...";
+
+    try {
+      const canvas = await html2canvas(cardEl, {
+        backgroundColor: null,
+        scale: 3, // High-res 300dpi crisp export
+        useCORS: true,
+        logging: false
+      });
+      const link = document.createElement("a");
+      link.download = `Student_ID_${document.getElementById("p_roll").textContent || "Card"}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      btn.textContent = "✅ Saved!";
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
+    } catch (err) {
+      console.error("ID Card export error:", err);
+      alert("Could not generate image: " + err.message);
+      btn.textContent = origText;
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById("quickDownloadBtn").addEventListener("click", function() { downloadIdCard(this); });
+  document.getElementById("fullDownloadBtn").addEventListener("click", function() { downloadIdCard(this); });
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+</script>
+</body>
+</html>

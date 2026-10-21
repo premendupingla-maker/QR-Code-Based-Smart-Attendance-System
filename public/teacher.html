@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Teacher Dashboard — Smart Attendance</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none; color:#fff;"><span class="mark"></span> Smart Attendance</a>
+    <nav>
+      <span class="userchip">👤 <span id="whoami">Teacher</span></span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="section-title">Teacher Panel</div>
+    <h2 style="margin-top:0;">Take Attendance</h2>
+
+    <div class="grid-2">
+      <!-- Left: setup + scanner -->
+      <div>
+        <div class="card">
+          <h3>1. Choose Subject &amp; Section</h3>
+          <div class="field">
+            <label>Subject</label>
+            <select id="subjectSelect"><option value="">Loading subjects…</option></select>
+          </div>
+          <div class="field">
+            <label>Section / Semester (label only)</label>
+            <input type="text" id="sectionInput" placeholder="e.g. Sem 5 - Section A" />
+          </div>
+          <button class="btn amber" id="startBtn" style="width:100%;">▶ Start Scanner</button>
+          <button class="btn outline" id="stopBtn" style="width:100%; margin-top:8px; display:none;">■ Stop Scanner</button>
+        </div>
+
+        <div class="card">
+          <h3>2. Camera</h3>
+          <div id="qr-reader"></div>
+          <p class="muted" id="scanHint">Select a subject, then start the scanner. Allow camera access when prompted.</p>
+        </div>
+      </div>
+
+      <!-- Right: results -->
+      <div>
+        <div id="msg" class="msg hidden"></div>
+
+        <div class="card">
+          <div class="flex-between">
+            <h3 style="margin:0;">Today's Attendance</h3>
+            <div class="row-actions">
+              <button class="btn outline small" id="refreshBtn">↻ Refresh</button>
+              <button class="btn small" id="exportBtn">⬇ Export CSV</button>
+            </div>
+          </div>
+          <table id="todayTable">
+            <thead><tr><th>Time</th><th>Roll</th><th>Name</th><th>Status</th></tr></thead>
+            <tbody><tr><td colspan="4" class="muted">Select a subject to view attendance</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Scan Log</h3>
+          <div class="scan-log" id="scanLog"><div class="muted" style="padding:10px 0;">No scans yet</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  requireRole("teacher");
+  document.getElementById("whoami").textContent = getName();
+
+  const subjectSelect = document.getElementById("subjectSelect");
+  const sectionInput = document.getElementById("sectionInput");
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
+  const scanHint = document.getElementById("scanHint");
+  const scanLog = document.getElementById("scanLog");
+  const msg = document.getElementById("msg");
+  let html5QrCode = null;
+  let scanning = false;
+  let busy = false; // prevents double-processing the same frame burst
+
+  // Load subjects for dropdown
+  (async () => {
+    try {
+      const subjects = await api("/teacher/subjects");
+      if (subjects.length === 0) {
+        subjectSelect.innerHTML = `<option value="">No subjects yet — ask Admin to add one</option>`;
+      } else {
+        subjectSelect.innerHTML = subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join("");
+        loadToday();
+      }
+    } catch (err) {
+      subjectSelect.innerHTML = `<option value="">Failed to load subjects</option>`;
+    }
+  })();
+
+  subjectSelect.addEventListener("change", loadToday);
+
+  startBtn.addEventListener("click", async () => {
+    if (!subjectSelect.value) { showMsg(msg, "Please choose a subject first", "bad"); return; }
+    startBtn.style.display = "none";
+    stopBtn.style.display = "block";
+    scanHint.textContent = "Point a student's QR ID card at the camera.";
+
+    html5QrCode = new Html5Qrcode("qr-reader");
+    try {
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        onScanSuccess,
+        () => {} // ignore per-frame scan failures
+      );
+      scanning = true;
+    } catch (err) {
+      showMsg(msg, "Could not access camera: " + err, "bad");
+      startBtn.style.display = "block";
+      stopBtn.style.display = "none";
+    }
+  });
+
+  stopBtn.addEventListener("click", stopScanner);
+
+  async function stopScanner() {
+    if (html5QrCode && scanning) {
+      await html5QrCode.stop();
+      html5QrCode.clear();
+      scanning = false;
+    }
+    startBtn.style.display = "block";
+    stopBtn.style.display = "none";
+    scanHint.textContent = "Scanner stopped.";
+  }
+
+  async function onScanSuccess(decodedText) {
+    if (busy) return;
+    busy = true;
+    try {
+      const data = await api("/teacher/scan", {
+        method: "POST",
+        body: { qrValue: decodedText, subject: subjectSelect.value },
+      });
+      showMsg(msg, data.message, "good");
+      logScan(data.student?.roll, data.student?.name, true, data.message);
+      loadToday();
+    } catch (err) {
+      showMsg(msg, err.message, "bad");
+      logScan("—", "—", false, err.message);
+    } finally {
+      setTimeout(() => (busy = false), 1500); // small cooldown so the same card isn't scanned twice instantly
+    }
+  }
+
+  function logScan(roll, name, ok, message) {
+    if (scanLog.querySelector(".muted")) scanLog.innerHTML = "";
+    const entry = document.createElement("div");
+    entry.className = "entry " + (ok ? "ok" : "fail");
+    const time = new Date().toLocaleTimeString();
+    entry.innerHTML = `<span>${time} · ${roll || "—"} ${name || ""}</span><span>${ok ? "✔" : "✕"}</span>`;
+    scanLog.prepend(entry);
+  }
+
+  async function loadToday() {
+    const subject = subjectSelect.value;
+    const tbody = document.querySelector("#todayTable tbody");
+    if (!subject) { tbody.innerHTML = `<tr><td colspan="4" class="muted">Select a subject to view attendance</td></tr>`; return; }
+    try {
+      const records = await api("/teacher/today?subject=" + encodeURIComponent(subject));
+      tbody.innerHTML = records.map(r => `
+        <tr><td class="mono">${r.time}</td><td class="mono">${r.studentId?.roll || ""}</td>
+        <td>${r.studentId?.name || ""}</td><td><span class="badge good">${r.status}</span></td></tr>
+      `).join("") || `<tr><td colspan="4" class="muted">No attendance marked yet today</td></tr>`;
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="4" class="muted">${err.message}</td></tr>`;
+    }
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", loadToday);
+
+  document.getElementById("exportBtn").addEventListener("click", async () => {
+    const subject = subjectSelect.value;
+    if (!subject) { showMsg(msg, "Choose a subject first", "bad"); return; }
+    const token = getToken();
+    const url = `/api/teacher/export?subject=${encodeURIComponent(subject)}`;
+    // Use a temporary link with auth via fetch since export requires the Bearer token
+    try {
+      const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
+      const blob = await res.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `attendance_${subject}.csv`;
+      link.click();
+    } catch (err) {
+      showMsg(msg, "Export failed", "bad");
+    }
+  });
+</script>
+</body>
+</html>
